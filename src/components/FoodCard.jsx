@@ -16,7 +16,7 @@ export default function FoodCard({ item, addToCart, removeFromCart, cart }) {
                 <div className="self-end">
                     {cartItem ? (
                         <QuantityControl
-                            quantity={cartItem.quantity}
+                            quantity={cartItem.qty}
                             onIncrease={() => addToCart(item)}
                             onDecrease={() => removeFromCart(item)}
                         />
