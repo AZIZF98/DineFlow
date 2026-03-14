@@ -12,6 +12,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
   const addToCart = (item) => {
+    console.log(cart);
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
@@ -26,6 +27,7 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = (item) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
+      if (!existing) return prev;
       if (existing.qty === 1) {
         return prev.filter((i) => i.id !== item.id);
       }
@@ -40,4 +42,5 @@ export const CartProvider = ({ children }) => {
   );
 };
 
+//iki iso tapi ketok kyk ono sing error
 export const useCart = () => useContext(CartContext);

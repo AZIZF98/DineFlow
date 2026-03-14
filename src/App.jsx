@@ -1,10 +1,13 @@
 import React from "react";
 import FoodMenu from "./pages/FoodMenu";
+import { CartProvider } from "./context/CartContext";
 
 const App = () => {
   return (
     <>
-      <FoodMenu />
+      <CartProvider>
+        <FoodMenu />
+      </CartProvider>
     </>
   );
 };
