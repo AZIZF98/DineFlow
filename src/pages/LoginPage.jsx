@@ -1,48 +1,88 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Input from "../components/Input";
 import { Box, Paper, Typography, Button } from "@mui/material";
+import { authActions } from "../store/Auth-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const LoginPage = () => {
-  const [login, setLogin] = useState({
-    loginInfo: { email: "", password: "" },
-  });
-  const [errors, setErrors] = useState(false);
+  const dispatch = useDispatch();
 
-  const handleLogin = (event) => {
+  const { userName, password } = useSelector((state) => state.auth);
+  const [errors, setErrors] = useState([]);
+
+  const changeUsernameHandler = (event) => {
+    dispatch(authActions.setUsername(event.target.value));
+  };
+
+  const changePasswordHandler = (event) => {
+    dispatch(authActions.setPassword(event.target.value));
+  };
+
+  const loginHandle = (event) => {
     event.preventDefault();
+    let newErrors = [];
 
-    const { email, password } = login.loginInfo;
+    if (!userName || !userName.includes("@")) {
+      newErrors.push("Email tidak valid");
+    }
 
-    // Perform validation
-    const hasError = !email || !email.includes("@") || !password;
+    if (!password || password.length < 6) {
+      newErrors.push("Password minimal 6 karakter");
+    }
 
-    // Update state based on the validation result
-    setErrors(hasError);
+    setErrors(newErrors);
 
-    // Act based on the validation result
-    if (hasError) {
-      console.log("Data tidak terkirim");
+    // kalau ada error → stop
+    if (errors.length > 0) {
+      console.log("Form error ❌", newErrors);
       return;
     }
 
-    console.log("Data terkirim");
-    console.log(login);
+    dispatch(authActions.login());
   };
 
-  function handleLoginInfo(key, value) {
-    setLogin((prevLogin) => ({
-      ...prevLogin,
-      loginInfo: {
-        ...prevLogin.loginInfo,
-        [key]: value,
-      },
-    }));
+  /* ganti redux biar bisa 1 file code sama signup */
 
-    // If there was an error, and the user is typing, hide the error message.
-    if (errors) {
-      setErrors(false);
-    }
-  }
+  // const [login, setLogin] = useState({
+  //   loginInfo: { email: "", password: "" },
+  // });
+  // const [errors, setErrors] = useState(false);
+
+  // const handleLogin = (event) => {
+  //   event.preventDefault();
+
+  //   const { email, password } = login.loginInfo;
+
+  //   // Perform validation
+  //   const hasError = !email || !email.includes("@") || !password;
+
+  //   // Update state based on the validation result
+  //   setErrors(hasError);
+
+  //   // Act based on the validation result
+  //   if (hasError) {
+  //     console.log("Data tidak terkirim");
+  //     return;
+  //   }
+
+  //   console.log("Data terkirim");
+  //   console.log(login);
+  // };
+
+  // function handleLoginInfo(key, value) {
+  //   setLogin((prevLogin) => ({
+  //     ...prevLogin,
+  //     loginInfo: {
+  //       ...prevLogin.loginInfo,
+  //       [key]: value,
+  //     },
+  //   }));
+
+  //   // If there was an error, and the user is typing, hide the error message.
+  //   if (errors) {
+  //     setErrors(false);
+  //   }
+  // }
 
   return (
     <Box
@@ -55,7 +95,7 @@ const LoginPage = () => {
         backgroundColor: "#FFC15E", // Warm Yellow
       }}
     >
-      <form onSubmit={handleLogin}>
+      <form onSubmit={loginHandle}>
         <Paper
           elevation={6}
           sx={{
@@ -80,20 +120,19 @@ const LoginPage = () => {
 
           <Input
             label="email"
-            onChangeName={handleLoginInfo}
-            value={login.loginInfo.email}
+            onChangeName={changeUsernameHandler}
+            value={userName}
           />
 
           <Input
             label="password"
-            onChangeName={handleLoginInfo}
-            value={login.loginInfo.password}
+            onChangeName={changePasswordHandler}
             type="password"
+            value={password}
           />
-
-          {errors ? (
-            <p style={{ color: "red" }}>email atau password ada yang salah</p>
-          ) : null}
+          {errors
+            ? errors.map((error) => <p style={{ color: "red" }}>{error}</p>)
+            : null}
 
           <Button
             variant="contained"
