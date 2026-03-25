@@ -4,14 +4,15 @@ import { CartProvider } from "./context/CartContext";
 import LoginPage from "./pages/LoginPage";
 import { Provider } from "react-redux";
 import store from "./store/Auth-redux";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes/Router.jsx";
 
 const App = () => {
   return (
     <>
       <Provider store={store}>
         <CartProvider>
-          <LoginPage />
-          {/* <FoodMenu /> */}
+          <RouterProvider router={router} />
         </CartProvider>
       </Provider>
     </>
