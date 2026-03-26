@@ -1,6 +1,6 @@
 import { TextField } from "@mui/material";
 
-export default function Input({ label, value, type = "text", ...props }) {
+export default function Input({ label, value, type = "text", name, ...props }) {
   return (
     <TextField
       id="emailField"
@@ -10,6 +10,7 @@ export default function Input({ label, value, type = "text", ...props }) {
       fullWidth
       value={value}
       sx={{ mb: 2 }}
+      name={name}
       {...props}
     />
   );
