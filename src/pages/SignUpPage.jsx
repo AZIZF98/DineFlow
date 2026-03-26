@@ -1,109 +1,154 @@
-import React, {useState} from "react";
-import {Box, Button, Container, Paper, Typography} from "@mui/material";
-import {UserPlus} from "lucide-react";
+import React, {useActionState} from "react";
+import {Alert, Box, Button, Container, Fade, LinearProgress, Paper, Typography} from "@mui/material";
+import {AlertCircle, CheckCircle2, UserPlus} from "lucide-react";
 import Input from "../components/Input.jsx";
+import {SignUpSchema} from "../utils/staffSchema.js";
+import {hashPassword} from "../utils/auth.js";
+import {z} from "zod";
 
-//benerin login dulu
+async function signUpAction(prevState, formData) {
+    try {
+        const rawData = Object.fromEntries(formData.entries());
+
+        const result = SignUpSchema.safeParse(rawData);
+
+        if (!result.success) {
+            const errorMessages = JSON.parse(result.error.message)[0].message || "Data tidak valid.";
+            return {error: errorMessages, success: false};
+        }
+
+        const validatedData = result.data;
+
+        if (validatedData.password !== validatedData.confirmPassword) {
+            return {error: "Password dan konfirmasi password tidak cocok."};
+        }
+
+        //     Cek database untuk hindari duplikasi email atau ID karyawan
+
+        const hashedPassword = await hashPassword(validatedData.password);
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        return {success: true, message: "Karyawan berhasil didaftarkan dengan aman!"};
+
+    } catch (e) {
+        if (e instanceof z.ZodError) {
+            return {error: JSON.parse(e.error.message)[0].message};
+        }
+        return {
+            error: "Terjadi kesalahan saat mendaftarkan karyawan."
+        };
+    }
+}
+
+
 export default function SignUpPage() {
-    const [formData, setFormData] = useState({
-        fullName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        staffId: "",
+    const [state, formAction, isPending] = useActionState(signUpAction, {
+        error: null,
+        success: false,
     });
 
-    const handleChange = (field) => (event) => {
-        setFormData({...formData, [field]: event.target.value});
-    };
-
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        // Validasi form
-        if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
-        // Lakukan proses pendaftaran (misal, kirim data ke server)
-        console.log("Form submitted:", formData);
-    };
-
     return (
-        <Box
-            className="min-h-screen flex items-center justify-center bg-gray-50"
-            sx={{px: 2, py: 4}}
-        >
-            <Container maxWidth="xs">
+        <Box className="min-h-screen flex items-center justify-center bg-gray-50/50 px-4 py-10">
+            <Container maxWidth="xs" className="relative">
+
                 <Paper
                     elevation={0}
-                    className="p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50"
+                    /* Tambahkan overflow-hidden agar progress bar tidak keluar dari lengkungan corner */
+                    className="relative overflow-hidden p-8 rounded-[2rem] border border-gray-100 shadow-2xl shadow-orange-100/50 bg-white"
                 >
-                    {/* Header */}
+
+                    {/* Progress Bar saat Loading - Menempel di atas Paper */}
+                    {isPending && (
+                        <LinearProgress
+                            sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: 4,
+                                '& .MuiLinearProgress-bar': {
+                                    backgroundColor: '#ea580c', // Warna orange-600
+                                },
+                                backgroundColor: '#ffedd5', // Warna orange-100 (track)
+                            }}
+                        />
+                    )}
+
+                    {/* Header Section */}
                     <Box className="text-center mb-8">
                         <div
-                            className="bg-orange-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <UserPlus className="text-orange-600" size={32}/>
+                            className="bg-orange-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5 rotate-3 hover:rotate-0 transition-transform duration-300">
+                            <UserPlus className="text-orange-600" size={36}/>
                         </div>
-                        <Typography variant="h5" className="font-bold text-gray-800">
-                            Registrasi Karyawan
+                        <Typography variant="h5" className="font-extrabold text-gray-900 tracking-tight">
+                            Staff Registration
                         </Typography>
-                        <Typography variant="body2" className="text-gray-500 mt-1">
-                            Daftarkan akun baru untuk akses sistem DineFlow
+                        <Typography variant="body2" className="text-gray-400 mt-2">
+                            Lengkapi data untuk akses dashboard DineFlow
                         </Typography>
                     </Box>
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit}>
-                        <Input
-                            label="Nama Lengkap"
-                            value={formData.fullName}
-                            onChangeName={handleChange("fullName")}
-                            // Kita bisa tambahkan icon di masa depan jika ingin lebih hias
-                        />
+                    {/* Feedback Status - Lebih Indah & Layak Pandang */}
+                    <Box className="mb-6 h-14 flex items-center">
+                        {state?.error && (
+                            <Fade in={!!state.error}>
+                                <Alert
+                                    severity="error"
+                                    icon={<AlertCircle size={18}/>}
+                                    className="w-full rounded-xl font-medium border border-red-100"
+                                >
+                                    {state.error}
+                                </Alert>
+                            </Fade>
+                        )}
+                        {state?.success && (
+                            <Fade in={!!state.success}>
+                                <Alert
+                                    severity="success"
+                                    icon={<CheckCircle2 size={18}/>}
+                                    className="w-full rounded-xl font-medium border border-green-100"
+                                >
+                                    {state.message}
+                                </Alert>
+                            </Fade>
+                        )}
+                    </Box>
 
-                        <Input
-                            label="Email Perusahaan"
-                            type="email"
-                            value={formData.email}
-                            onChangeName={handleChange("email")}
-                        />
-
-                        <Input
-                            label="ID Karyawan"
-                            value={formData.staffId}
-                            onChangeName={handleChange("staffId")}
-                        />
-
-                        <Input
-                            label="Password"
-                            type="password"
-                            value={formData.password}
-                            onChangeName={handleChange("password")}
-                        />
-
-                        <Input
-                            label="Confirm Password"
-                            type="password"
-                            value={formData.confirmPassword}
-                            onChangeName={handleChange("confirmPassword")}
-                        />
+                    {/* Form Section */}
+                    <form action={formAction} className="space-y-1">
+                        <Input label="Nama Lengkap" name="fullName"/>
+                        <Input label="Email Perusahaan" type="email" name="email"/>
+                        <Input label="ID Karyawan" name="staffId"/>
+                        <Input label="Password" type="password" name="password"/>
+                        <Input label="Konfirmasi Password" type="password" name="confirmPassword"/>
 
                         <Button
                             fullWidth
                             variant="contained"
                             type="submit"
-                            size="large"
-                            className="mt-4 py-3 bg-orange-500 hover:bg-orange-600 rounded-xl shadow-lg shadow-orange-200 capitalize font-bold text-lg"
-                            sx={{mt: 2, borderRadius: 3, py: 1.5, textTransform: 'none'}}
+                            disabled={isPending}
+                            className={`mt-6 py-4 rounded-2xl font-black text-lg transition-all duration-300 ${
+                                isPending ? 'bg-gray-200' : 'bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-200'
+                            }`}
+                            sx={{mt: 3, textTransform: 'none', borderRadius: '16px'}}
                         >
-                            Daftarkan Akun
+                            {isPending ? (
+                                <span className="flex items-center gap-2">Memproses...</span>
+                            ) : (
+                                "Daftarkan Akun"
+                            )}
                         </Button>
                     </form>
 
                     {/* Footer Info */}
-                    <Box className="mt-8 text-center border-t border-gray-100 pt-6">
-                        <Typography variant="caption" className="text-gray-400">
-                            Butuh bantuan akses? Hubungi Admin IT DineFlow
+                    <Box className="mt-10 text-center border-t border-dashed border-gray-200 pt-6">
+                        <Typography variant="caption" className="text-gray-400 block mb-1">
+                            Keamanan data karyawan terenkripsi.
+                        </Typography>
+                        <Typography variant="caption"
+                                    className="font-bold text-orange-600 cursor-pointer hover:underline">
+                            Hubungi Admin IT
                         </Typography>
                     </Box>
                 </Paper>
