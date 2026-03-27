@@ -1,43 +1,33 @@
-import React, { useActionState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Container,
-  Fade,
-  LinearProgress,
-  Paper,
-  Typography,
-} from "@mui/material";
-import { AlertCircle, CheckCircle2, UserPlus } from "lucide-react";
+import React, {useActionState} from "react";
+import {Alert, Box, Button, Container, Fade, LinearProgress, Paper, Typography} from "@mui/material";
+import {AlertCircle, CheckCircle2, UserPlus} from "lucide-react";
 import Input from "../components/Input.jsx";
-import { SignUpSchema } from "../utils/staffSchema.js";
-import { hashPassword } from "../utils/auth.js";
-import { z } from "zod";
+import {SignUpSchema} from "../utils/staffSchema.js";
+import {hashPassword} from "../utils/auth.js";
+import {z} from "zod";
 
 async function signUpAction(prevState, formData) {
-  try {
-    const rawData = Object.fromEntries(formData.entries());
+    try {
+        const rawData = Object.fromEntries(formData.entries());
 
-    const result = SignUpSchema.safeParse(rawData);
+        const result = SignUpSchema.safeParse(rawData);
 
-    if (!result.success) {
-      const errorMessages =
-        JSON.parse(result.error.message)[0].message || "Data tidak valid.";
-      return { error: errorMessages, success: false };
-    }
+        if (!result.success) {
+            const errorMessages = JSON.parse(result.error.message)[0].message || "Data tidak valid.";
+            return {error: errorMessages, success: false};
+        }
 
-    const validatedData = result.data;
+        const validatedData = result.data;
 
-    if (validatedData.password !== validatedData.confirmPassword) {
-      return { error: "Password dan konfirmasi password tidak cocok." };
-    }
+        if (validatedData.password !== validatedData.confirmPassword) {
+            return {error: "Password dan konfirmasi password tidak cocok."};
+        }
 
-    //     Cek database untuk hindari duplikasi email atau ID karyawan
+        //     Cek database untuk hindari duplikasi email atau ID karyawan
 
-    const hashedPassword = await hashPassword(validatedData.password);
+        const hashedPassword = await hashPassword(validatedData.password);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
     return {
       success: true,
@@ -53,21 +43,21 @@ async function signUpAction(prevState, formData) {
   }
 }
 
+
 export default function SignUpPage() {
-  const [state, formAction, isPending] = useActionState(signUpAction, {
-    error: null,
-    success: false,
-  });
+    const [state, formAction, isPending] = useActionState(signUpAction, {
+        error: null,
+        success: false,
+    });
 
   return (
     <Box className="min-h-screen flex items-center justify-center bg-gray-50/50 px-4 py-10">
       <Container maxWidth="xs" className="relative">
         <Paper
           elevation={0}
-          /* Tambahkan overflow-hidden agar progress bar tidak keluar dari lengkungan corner */
           className="relative overflow-hidden p-8 rounded-[2rem] border border-gray-100 shadow-2xl shadow-orange-100/50 bg-white"
         >
-          {/* Progress Bar saat Loading - Menempel di atas Paper */}
+          {/* Progress Bar */}
           {isPending && (
             <LinearProgress
               sx={{
