@@ -1,4 +1,4 @@
-import React, { useActionState } from "react";
+import React, { useActionState, useEffect } from "react";
 import {
   Alert,
   Box,
@@ -11,53 +11,24 @@ import {
 } from "@mui/material";
 import { AlertCircle, CheckCircle2, UserPlus } from "lucide-react";
 import Input from "../components/Input.jsx";
-import { SignUpSchema } from "../utils/staffSchema.js";
-import { hashPassword } from "../utils/auth.js";
-import { z } from "zod";
-
-async function signUpAction(prevState, formData) {
-  try {
-    const rawData = Object.fromEntries(formData.entries());
-
-    const result = SignUpSchema.safeParse(rawData);
-
-    if (!result.success) {
-      const errorMessages =
-        JSON.parse(result.error.message)[0].message || "Data tidak valid.";
-      return { error: errorMessages, success: false };
-    }
-
-    const validatedData = result.data;
-
-    if (validatedData.password !== validatedData.confirmPassword) {
-      return { error: "Password dan konfirmasi password tidak cocok." };
-    }
-
-    //     Cek database untuk hindari duplikasi email atau ID karyawan
-
-    const hashedPassword = await hashPassword(validatedData.password);
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    return {
-      success: true,
-      message: "Karyawan berhasil didaftarkan dengan aman!",
-    };
-  } catch (e) {
-    if (e instanceof z.ZodError) {
-      return { error: JSON.parse(e.error.message)[0].message };
-    }
-    return {
-      error: "Terjadi kesalahan saat mendaftarkan karyawan.",
-    };
-  }
-}
+import { useNavigate } from "react-router";
+import { signUpAction } from "../actions/Auth-Actions.js";
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
   const [state, formAction, isPending] = useActionState(signUpAction, {
     error: null,
     success: false,
   });
+
+  useEffect(() => {
+    if (state.success === true) {
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [state, navigate]);
 
   return (
     <Box className="min-h-screen flex items-center justify-center bg-gray-50/50 px-4 py-10">
