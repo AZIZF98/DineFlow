@@ -6,7 +6,7 @@ import StaffDashboard from "../pages/StaffDashboard.jsx";
 import MenuManagement from "../pages/MenuManagement.jsx";
 
 export const router = createBrowserRouter([
-    {path: "/", element: <LoginPage/>},
+    {path: "/login", element: <LoginPage/>},
     {path: "/foodmenu", element: <FoodMenu/>},
     {path: "/register", element: <SignUpPage/>},
     {path: "/dashboard", element: <StaffDashboard/>},
