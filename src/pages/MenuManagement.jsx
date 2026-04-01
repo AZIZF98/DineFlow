@@ -5,56 +5,16 @@ import {useDispatch, useSelector} from "react-redux";
 import {addItem, deleteItem, updateItem} from "../store/ItemSlice.js";
 import Modal from "../components/UI/Modal.jsx";
 import Input from "../components/Input.jsx";
-import {ItemSchema} from "../utils/itemSchema.js";
+import {validateItemAction} from "../actions/ItemActions.jsx";
 
-
-async function validateItems(prevState, formData) {
-//     Simulasi create atau update item
-    try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        const rawData = Object.fromEntries(formData.entries());
-        rawData.price = parseFloat(rawData.price);
-
-        const result = ItemSchema.safeParse(rawData);
-
-        if (!result.success) {
-            // const errorMessages = JSON.parse(result.error.message)[1].message || JSON.parse(result.error.message)[0].message || "Data tidak valid.";
-            const errorMessage = result.error.flatten().fieldErrors;
-            console.log("Error Messages:", errorMessage);
-            return {error: 'Cek kembali isian item!', success: false, errors: errorMessage, data: rawData};
-        }
-
-        const validatedData = result.data;
-        validatedData.id = Number(rawData.id) || undefined;
-
-        const isEdit = validatedData.id == undefined ? false : true;
-
-        const itemData = {
-            id: isEdit ? validatedData.id : Date.now(),
-            name: validatedData.name,
-            price: parseFloat(rawData.price),
-            category: validatedData.category,
-            image: validatedData.image || "https://via.placeholder.com/150",
-        };
-
-        return {
-            success: true,
-            isEdit,
-            data: itemData,
-            timestamps: Date.now(),
-        };
-    } catch (e) {
-        return {error: "Terjadi kesalahan saat menyimpan data.", success: false};
-    }
-}
 
 export default function MenuManagement() {
     const dispatch = useDispatch();
 
     const [localErrors, setLocalErrors] = useState(null);
     const menuItems = useSelector((state) => state.items.list);
-    const [state, formAction, isPending] = useActionState(validateItems, {
+
+    const [state, formAction, isPending] = useActionState(validateItemAction, {
         error: null,
         success: false
     });
@@ -83,14 +43,21 @@ export default function MenuManagement() {
             } else {
                 dispatch(addItem(state.data));
             }
-            state.success = false;
-            state.data = null;
+            // state.success = false;
+            // state.data = null;
             formModalRef.current.close();
         }
-        if (state?.errors) {
-            setLocalErrors(state.errors);
-        }
-    }, [state, dispatch]);
+    }, [state.data, state.success, state.isEdit, dispatch]);
+
+    useEffect(() => {
+        if (!state?.errors) return;
+
+        setLocalErrors((prev) => {
+            const same = JSON.stringify(prev) === JSON.stringify(state.errors);
+
+            return same ? prev : state.errors;
+        })
+    }, [state?.errors])
 
     const clearFormState = () => {
         setLocalErrors(null);

@@ -4,26 +4,8 @@ import {Box, Button, Chip, Container, Grid, Paper, Tab, Tabs, Typography} from "
 import {BellRing, CheckCircle2, Clock, CookingPot, ShoppingBag} from "lucide-react";
 import {clearNotification, receiveNewOrder, updateOrderStatus} from "../store/orderSlice";
 import Items from "../Items.js";
+import {notificationSound} from "../utils/audio.js";
 
-const playNotificationSound = () => {
-    try {
-        const context = new window.AudioContext();
-        const oscilattor = context.createOscillator();
-        const gainNode = context.createGain();
-
-        oscilattor.type = "sine";
-        oscilattor.frequency.setValueAtTime(880, context.currentTime);
-        gainNode.gain.setValueAtTime(0.1, context.currentTime);
-
-        oscilattor.connect(gainNode);
-        gainNode.connect(context.destination);
-
-        oscilattor.start();
-        oscilattor.stop(context.currentTime + 0.3);
-    } catch (error) {
-        console.log("Audio play failed: ", error);
-    }
-};
 
 export default function StaffDashboard() {
     const dispatch = useDispatch();
@@ -35,7 +17,7 @@ export default function StaffDashboard() {
 
     useEffect(() => {
         if (hasNewOrder) {
-            playNotificationSound();
+            notificationSound();
             dispatch(clearNotification());
         }
     }, [hasNewOrder, dispatch]);
